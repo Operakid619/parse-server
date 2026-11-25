@@ -23,6 +23,7 @@ export class InMemoryCache {
   }
 
   put(key, value, ttl = this.ttl) {
+    this.del(key);
     if (ttl < 0 || isNaN(ttl)) {
       ttl = NaN;
     }
@@ -54,6 +55,9 @@ export class InMemoryCache {
   }
 
   clear() {
+    for (const key of Object.keys(this.cache)) {
+      this.del(key);
+    }
     this.cache = Object.create(null);
   }
 }

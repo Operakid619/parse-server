@@ -69,3 +69,31 @@ describe('InMemoryCache', function () {
     expect(cache.ttl).toEqual(5 * 1000);
   });
 });
+
+
+describe('InMemoryCache timer lifecycle', () => {
+  beforeEach(() => jasmine.clock().install());
+  afterEach(() => jasmine.clock().uninstall());
+
+  it('keeps a replacement until its own expiry', () => {
+    const cache = new InMemoryCache({ ttl: 100 });
+    cache.put('key', 'old');
+    jasmine.clock().tick(50);
+    cache.put('key', 'new', 200);
+    jasmine.clock().tick(50);
+    expect(cache.get('key')).toBe('new');
+    jasmine.clock().tick(150);
+    expect(cache.get('key')).toBe(null);
+  });
+
+  it('cancels cleared timers before a key is reused', () => {
+    const cache = new InMemoryCache({ ttl: 100 });
+    cache.put('key', 'old');
+    cache.clear();
+    cache.put('key', 'new', 200);
+    jasmine.clock().tick(100);
+    expect(cache.get('key')).toBe('new');
+    jasmine.clock().tick(100);
+    expect(cache.get('key')).toBe(null);
+  });
+});
